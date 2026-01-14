@@ -1,7 +1,7 @@
 import requests, os
 
-TOKEN = os.environ["NOTION_TOKEN"]
-DB_ID = os.environ["NOTION_DATABASE_ID"]
+TOKEN = os.environ.get("NOTION_TOKEN")
+DB_ID = os.environ.get("NOTION_DATABASE_ID")
 
 headers = {
     "Authorization": f"Bearer {TOKEN}",
@@ -14,21 +14,42 @@ res = requests.post(
     headers=headers
 )
 
+if res.status_code != 200:
+    raise Exception("Notion API error:", res.text)
+
 data = res.json()
 
+def get_title(prop):
+    try:
+        return prop["title"][0]["plain_text"]
+    except:
+        return ""
+
+def get_text(prop):
+    try:
+        return prop["rich_text"][0]["plain_text"]
+    except:
+        return ""
+
+def get_select(prop):
+    try:
+        return prop["select"]["name"]
+    except:
+        return ""
+
 md = "# 📚 Okul Programım\n\n"
-md += "_Notion ile senkronize edilir. Otomatik güncellenir._\n\n"
+md += "_Notion → GitHub otomatik senkronizasyon_\n\n"
 md += "| Ders | Gün | Saat | Öğretmen | Tür |\n"
-md += "|------|----|------|----------|-----|\n"
+md += "|------|-----|------|----------|-----|\n"
 
-for page in data["results"]:
-    props = page["properties"]
+for page in data.get("results", []):
+    props = page.get("properties", {})
 
-    ders = props["Ad"]["title"][0]["plain_text"] if props["Ad"]["title"] else ""
-    gun = props["Gün"]["select"]["name"] if props["Gün"]["select"] else ""
-    saat = props["Saat Aralığı"]["rich_text"][0]["plain_text"] if props["Saat Aralığı"]["rich_text"] else ""
-    ogretmen = props["Öğretmen adı"]["rich_text"][0]["plain_text"] if props["Öğretmen adı"]["rich_text"] else ""
-    tur = props["Tür"]["select"]["name"] if props["Tür"]["select"] else ""
+    ders = get_title(props.get("Ad", {})) or get_title(props.get("Ders", {})) or get_title(props.get("Name", {}))
+    gun = get_select(props.get("Gün", {}))
+    saat = get_text(props.get("Saat Aralığı", {})) or get_text(props.get("Saat", {}))
+    ogretmen = get_text(props.get("Öğretmen adı", {})) or get_text(props.get("Öğretmen", {}))
+    tur = get_select(props.get("Tür", {}))
 
     md += f"| {ders} | {gun} | {saat} | {ogretmen} | {tur} |\n"
 
