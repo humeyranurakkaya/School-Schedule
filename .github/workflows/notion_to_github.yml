@@ -1,25 +1,11 @@
-name: Notion → GitHub Sync
+name: Test Workflow
 
 on:
   workflow_dispatch:
 
 jobs:
-  sync:
+  test:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install dependencies
-        run: |
-          pip install requests
-
-      - name: Run sync script
-        run: |
-          python notion_to_md.py
+      - name: Say hello
+        run: echo "HELLO FROM GITHUB ACTIONS"
