@@ -1,8 +1,6 @@
 name: Notion → GitHub Sync
 
 on:
-  schedule:
-    - cron: "0 */6 * * *"
   workflow_dispatch:
 
 jobs:
@@ -10,24 +8,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: '3.11'
 
-      - run: pip install requests
+      - name: Install dependencies
+        run: |
+          pip install requests
 
       - name: Run sync script
-        run: python notion_to_md.py
-        env:
-          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
-          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
-
-      - name: Commit changes
         run: |
-          git config --global user.name "Notion Sync Bot"
-          git config --global user.email "bot@github.com"
-          git add .
-          git commit -m "🔄 Auto-sync from Notion" || echo "No changes"
-          git push
+          python notion_to_md.py
